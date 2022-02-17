@@ -2,10 +2,10 @@
 #coding=utf-8
 
 import numpy as np
+import pandas as pd
 
 WORDLE_POSSIBLE_WORDS_PATH = "docs/wordle/all_possibles_words.txt"
 WORDLE_ALL_WORDS_PATH = "docs/wordle/all_words.txt"
-WORD_SIZE = 5
 
 def evaluate_step(word,all_words):
     value = 0
@@ -26,17 +26,15 @@ def evaluate():
         all_words_list = [line.rstrip('\n') for line in f]
     all_words = np.array(all_words_list)
 
-    eval_w = evaluate_step(possi_words[0],all_words)
-    evaluate_words = np.array([(possi_words[0],eval_w)],dtype=[('name', 'U10'), ('value', 'i4')])
-    eval_w = evaluate_step(possi_words[1],all_words)
-    evaluate_words = np.append(evaluate_words,[(possi_words[1],eval_w)])
-    
-    print(evaluate_words)
-    #for word in possi_words:
-        #word_evaluate = evaluate_step(word,all_words)
+    rank_words = pd.DataFrame(columns=['word','evaluate'])
 
-    print(possi_words)
-    print(all_words)
+    for word in possi_words:
+        eval_w = evaluate_step(word,all_words)
+        rank_words = rank_words.append({'word':word,'evaluate': eval_w}, ignore_index=True)
+
+    # tranform dataframe to csv file
+    rank_words = rank_words.sort_values(by=['evaluate'],ascending=False)
+    rank_words.to_csv('rank_wordle_words.csv',index=False)
 
 if __name__ == "__main__":
     try:
