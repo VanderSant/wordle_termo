@@ -61,7 +61,8 @@ def remove_wrong_words(guess,colors,possible_solutions,all_words):
                     if(letter not in letter_in_solution):
                         possible_solutions = np.delete(possible_solutions,np.where(possible_solutions == solution))
                     else:
-                        possible_solutions = np.delete(possible_solutions,np.where(possible_solutions[pos] == solution[pos]))
+                        if(letter == solution[pos]):
+                            possible_solutions = np.delete(possible_solutions,np.where(possible_solutions == solution))
             for word in all_words:
                 if(letter in word):
                     if(letter not in letter_in_solution):
