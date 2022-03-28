@@ -8,44 +8,54 @@ import pandas as pd
 WORDLE_TERMO_GREEN_COLOR_SIMBOL = '2'
 WORDLE_TERMO_YELLOW_COLOR_SIMBOL = '1'
 
-def evaluate_step(word,solutions):
-    green_color_num,yellow_color_num = 0,0
-    good_word_prob = 0
-    for solution in solutions:
-        has_green_color,has_yellow_color = False,False
-        solution_list = list(solution)
-        word_list = list(word)
-        for (i,_) in enumerate(word_list):
-            if(word_list[i] == solution_list[i]):
-                green_color_num += 1
-                has_green_color = True
-                solution_list[i] = WORDLE_TERMO_GREEN_COLOR_SIMBOL
-                word_list[i] = WORDLE_TERMO_GREEN_COLOR_SIMBOL
+class evaluate_step():
+    def __init__(self,f):
+        self.func = f
 
-        for (i,word_char) in enumerate(word_list):
-            if((word_char == WORDLE_TERMO_GREEN_COLOR_SIMBOL) or (word_list[i] == WORDLE_TERMO_YELLOW_COLOR_SIMBOL)):
-                continue
-            elif(word_char in solution_list):
-                yellow_color_num += 1
-                has_yellow_color = True
-                pos_char_sol = solution_list.index(word_char)
-                pos_char_word = word_list.index(word_char)
-                solution_list[pos_char_sol] = WORDLE_TERMO_YELLOW_COLOR_SIMBOL
-                word_list[pos_char_word] = WORDLE_TERMO_YELLOW_COLOR_SIMBOL
+    def evaluate_step(self,word,solutions):
+        green_color_num,yellow_color_num = 0,0
+        good_word_prob = 0
+        for solution in solutions:
+            has_green_color,has_yellow_color = False,False
+            solution_list = list(solution)
+            word_list = list(word)
+            for (i,_) in enumerate(word_list):
+                if(word_list[i] == solution_list[i]):
+                    green_color_num += 1
+                    has_green_color = True
+                    solution_list[i] = WORDLE_TERMO_GREEN_COLOR_SIMBOL
+                    word_list[i] = WORDLE_TERMO_GREEN_COLOR_SIMBOL
 
-        good_word = (1 if(has_green_color or has_yellow_color) else 0)
-        good_word_prob += good_word
+            for (i,word_char) in enumerate(word_list):
+                if((word_char == WORDLE_TERMO_GREEN_COLOR_SIMBOL) or (word_list[i] == WORDLE_TERMO_YELLOW_COLOR_SIMBOL)):
+                    continue
+                elif(word_char in solution_list):
+                    yellow_color_num += 1
+                    has_yellow_color = True
+                    pos_char_sol = solution_list.index(word_char)
+                    pos_char_word = word_list.index(word_char)
+                    solution_list[pos_char_sol] = WORDLE_TERMO_YELLOW_COLOR_SIMBOL
+                    word_list[pos_char_word] = WORDLE_TERMO_YELLOW_COLOR_SIMBOL
 
-    good_word_prob = good_word_prob/len(solutions)
-    return green_color_num,yellow_color_num,good_word_prob
+            good_word = (1 if(has_green_color or has_yellow_color) else 0)
+            good_word_prob += good_word
 
+        good_word_prob = (good_word_prob*100/len(solutions))
+        return green_color_num,yellow_color_num,good_word_prob
+
+    def __call__(self,*arg):
+        possi_words = arg[0]
+        all_words = arg[1]
+        rank_words = self.func(possi_words,all_words)
+        for word in all_words:
+            eright_pos,eyellow_color_num,egood_word_prob = self.evaluate_step(word,possi_words)
+            rank_words = rank_words.append({'word':word,'green_color_num':eright_pos,'yellow_color_num':eyellow_color_num,'good_word_prob':egood_word_prob}, ignore_index=True)
+
+        return rank_words
+
+@evaluate_step
 def evaluate(possi_words,all_words):
     rank_words = pd.DataFrame(columns=['word','green_color_num','yellow_color_num','good_word_prob'])
-
-    for word in all_words:
-        eright_pos,eyellow_color_num,egood_word_prob = evaluate_step(word,possi_words)
-        rank_words = rank_words.append({'word':word,'green_color_num':eright_pos,'yellow_color_num':eyellow_color_num,'good_word_prob':egood_word_prob}, ignore_index=True)
-
     return rank_words
 
 def remove_wrong_words(guess,colors,possible_solutions,all_words):

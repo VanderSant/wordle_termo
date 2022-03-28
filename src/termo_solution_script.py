@@ -55,8 +55,8 @@ if __name__ == "__main__":
     try:
         #test_evaluate
         #takes almost 3 minutes
-        #generate_initial_evaluate_list()
+        generate_initial_evaluate_list()
 
-        main()
+        #main()
     except KeyboardInterrupt:
         print("\nBetter luck next time")
